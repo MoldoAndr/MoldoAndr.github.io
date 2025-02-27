@@ -2,10 +2,10 @@ document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        
+
         tab.classList.add('active');
         document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
-        
+
         if (tab.dataset.tab === 'architecture') {
             renderArchitectureDiagram();
         } else if (tab.dataset.tab === 'dataflow') {
@@ -18,10 +18,10 @@ document.querySelectorAll('.tab').forEach(tab => {
 
 function renderArchitectureDiagram() {
     d3.select("#diagram").html("");
-    
+
     const width = 1100;
     const height = 900;
-    
+
     const tooltip = d3.select("body").append("div")
         .attr("class", "tooltip")
         .style("opacity", 0)
@@ -32,34 +32,34 @@ function renderArchitectureDiagram() {
         .style("font-size", "14px")
         .style("position", "absolute")
         .style("z-index", "100");
-    
+
     const svg = d3.select("#diagram")
         .append("svg")
         .attr("width", width)
         .attr("height", height)
         .append("g")
         .attr("transform", "translate(100,50)");
-    
+
     const zoom = d3.zoom()
         .scaleExtent([0.5, 3])
         .on("zoom", (event) => {
             svg.attr("transform", event.transform);
         });
-    
+
     d3.select("#diagram svg").call(zoom);
-    
+
     d3.select("#zoom-in").on("click", () => {
         d3.select("#diagram svg").transition().call(zoom.scaleBy, 1.2);
     });
-    
+
     d3.select("#zoom-out").on("click", () => {
         d3.select("#diagram svg").transition().call(zoom.scaleBy, 0.8);
     });
-    
+
     d3.select("#reset").on("click", () => {
         d3.select("#diagram svg").transition().call(zoom.transform, d3.zoomIdentity.translate(50, 50).scale(1));
     });
-    
+
     const data = {
         name: "Platform",
         color: "#3498db",
@@ -202,12 +202,12 @@ function renderArchitectureDiagram() {
             }
         ]
     };
-    
+
     const treeLayout = d3.tree().size([height - 150, width - 250]);
-    
+
     const root = d3.hierarchy(data);
     treeLayout(root);
-    
+
     svg.selectAll(".link")
         .data(root.links())
         .enter()
@@ -219,35 +219,35 @@ function renderArchitectureDiagram() {
         .style("fill", "none")
         .style("stroke", "#999")
         .style("stroke-width", "1.5px");
-    
-    
+
+
     const nodes = svg.selectAll(".node")
         .data(root.descendants())
         .enter()
         .append("g")
         .attr("class", "node")
         .attr("transform", d => `translate(${d.y},${d.x})`)
-        .on("mouseover", function(event, d) {
+        .on("mouseover", function (event, d) {
             tooltip.transition()
                 .duration(1000)
                 .style("opacity", .9);
-            
+
             let tooltipContent = `<strong>${d.data.name}</strong>`;
             if (d.data.desc) {
                 tooltipContent += `<br>${d.data.desc}`;
             }
-            
+
             tooltip.html(tooltipContent)
                 .style("left", (event.pageX + 10) + "px")
                 .style("top", (event.pageY - 28) + "px");
         })
-        .on("mouseout", function() {
+        .on("mouseout", function () {
             tooltip.transition()
                 .duration(500)
                 .style("opacity", 0);
         });
-    
-    
+
+
     nodes.append("rect")
         .attr("x", -80)
         .attr("y", -20)
@@ -263,31 +263,31 @@ function renderArchitectureDiagram() {
             return current ? current.data.color : "#999";
         })
         .style("fill-opacity", d => 1 - 0.2 * d.depth);
-    
-    
+
+
     nodes.append("text")
         .attr("dy", 5)
         .attr("text-anchor", "middle")
         .text(d => d.data.name)
-        .style("font-size", d => Math.max(18 - d.depth * 2, 12) + "px") 
+        .style("font-size", d => Math.max(18 - d.depth * 2, 12) + "px")
         .style("font-weight", "bold")
         .style("fill", "#fff");
 }
 
 
 function renderDataflowDiagram() {
-    
+
     d3.select("#dataflow-diagram").html("");
-    
+
     const width = 1200;
-    const height = 500; 
-    
+    const height = 500;
+
     const svg = d3.select("#dataflow-diagram")
         .append("svg")
         .attr("width", width)
         .attr("height", height);
-    
-    
+
+
     svg.append("defs").append("marker")
         .attr("id", "arrowhead")
         .attr("viewBox", "0 -5 10 10")
@@ -299,8 +299,8 @@ function renderDataflowDiagram() {
         .append("path")
         .attr("d", "M0,-5L10,0L0,5")
         .attr("fill", "#666");
-    
-    
+
+
     const nodes = [
         { id: "user", label: "Utilizator", x: 100, y: 350, type: "actor" },
         { id: "frontend", label: "Frontend", x: 250, y: 250, type: "frontend" },
@@ -312,8 +312,8 @@ function renderDataflowDiagram() {
         { id: "ai_analyzer", label: "Analizor AI", x: 850, y: 350, type: "ai" },
         { id: "db", label: "Baze de Date", x: 1000, y: 350, type: "database" }
     ];
-    
-    
+
+
     const links = [
         { source: "user", target: "frontend", label: "Interacțiune UI" },
         { source: "user", target: "cli", label: "Comenzi CLI" },
@@ -330,8 +330,8 @@ function renderDataflowDiagram() {
         { source: "api", target: "frontend", label: "Răspunsuri HTTP" },
         { source: "api", target: "cli", label: "Răspunsuri API" }
     ];
-    
-    
+
+
     const colorMap = {
         "actor": "#666",
         "frontend": "#3498db",
@@ -340,33 +340,33 @@ function renderDataflowDiagram() {
         "ai": "#9b59b6",
         "database": "#e74c3c"
     };
-    
-    
+
+
     const linkElements = svg.selectAll(".link")
         .data(links)
         .enter()
         .append("g")
         .attr("class", "link");
-        
-    
+
+
     linkElements.append("path")
         .attr("d", d => {
             const source = nodes.find(n => n.id === d.source);
             const target = nodes.find(n => n.id === d.target);
-            
-            
+
+
             const dx = target.x - source.x;
             const dy = target.y - source.y;
-            const dr = Math.sqrt(dx * dx + dy * dy) * 1.5; 
-            
+            const dr = Math.sqrt(dx * dx + dy * dy) * 1.5;
+
             return `M${source.x},${source.y}A${dr},${dr} 0 0,1 ${target.x},${target.y}`;
         })
         .style("fill", "none")
         .style("stroke", "#666")
         .style("stroke-width", "2px")
         .attr("marker-end", "url(#arrowhead)");
-    
-    
+
+
     linkElements.append("rect")
         .attr("x", d => {
             const source = nodes.find(n => n.id === d.source);
@@ -376,9 +376,9 @@ function renderDataflowDiagram() {
         .attr("y", d => {
             const source = nodes.find(n => n.id === d.source);
             const target = nodes.find(n => n.id === d.target);
-            
+
             const midY = (source.y + target.y) / 2;
-            return (Math.abs(source.x - target.x) > Math.abs(source.y - target.y)) 
+            return (Math.abs(source.x - target.x) > Math.abs(source.y - target.y))
                 ? midY - 10 : midY - 10;
         })
         .attr("width", d => d.label.length * 8)
@@ -387,8 +387,8 @@ function renderDataflowDiagram() {
         .attr("ry", 5)
         .style("fill", "white")
         .style("fill-opacity", 0.8);
-        
-    
+
+
     linkElements.append("text")
         .attr("x", d => {
             const source = nodes.find(n => n.id === d.source);
@@ -398,9 +398,9 @@ function renderDataflowDiagram() {
         .attr("y", d => {
             const source = nodes.find(n => n.id === d.source);
             const target = nodes.find(n => n.id === d.target);
-            
+
             const midY = (source.y + target.y) / 2;
-            return (Math.abs(source.x - target.x) > Math.abs(source.y - target.y)) 
+            return (Math.abs(source.x - target.x) > Math.abs(source.y - target.y))
                 ? midY : midY;
         })
         .attr("text-anchor", "middle")
@@ -408,35 +408,148 @@ function renderDataflowDiagram() {
         .text(d => d.label)
         .style("font-size", "14px")
         .style("fill", "#333");
-    
-    
+
+
     const nodeElements = svg.selectAll(".node")
         .data(nodes)
         .enter()
         .append("g")
         .attr("class", "node")
         .attr("transform", d => `translate(${d.x}, ${d.y})`);
-    
-    
+
+
     nodeElements.append("circle")
-        .attr("r", 45) 
+        .attr("r", 45)
         .style("fill", d => colorMap[d.type])
         .style("stroke", "#333")
         .style("stroke-width", "2px");
-    
-    
+
+
     nodeElements.append("text")
         .attr("dy", 5)
         .attr("text-anchor", "middle")
         .text(d => d.label)
-        .style("font-size", "16px") 
+        .style("font-size", "16px")
         .style("font-weight", "bold")
         .style("fill", "#fff");
 }
 
 
+document.addEventListener('DOMContentLoaded', function () {
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabName = tab.getAttribute('data-tab');
+
+
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+
+            tab.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        });
+    });
+
+
+    const docItems = document.querySelectorAll('.doc-item');
+    const docContent = document.getElementById('doc-content');
+    const docViewer = document.getElementById('doc-viewer');
+
+
+
+    docItems.forEach(item => {
+        item.addEventListener('click', function () {
+            const docFile = this.getAttribute('data-docfile');
+            loadDocument(docFile);
+
+
+            docItems.forEach(d => d.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    });
+
+
+
+
+
+
+    function loadDocument(filename) {
+        console.log('Încercare de încărcare document:', filename);
+
+
+        docContent.innerHTML = '<div class="loading">Încărcare document...</div>';
+
+        fetch(filename)
+            .then(response => {
+                console.log('Răspuns primit:', response.status, response.statusText);
+                if (!response.ok) {
+                    throw new Error(`Eroare rețea: ${response.status} ${response.statusText}`);
+                }
+                return response.arrayBuffer();
+            })
+            .then(arrayBuffer => {
+                console.log('Buffer document primit, dimensiune:', arrayBuffer.byteLength);
+                renderDocxFromArrayBuffer(arrayBuffer, filename);
+            })
+            .catch(error => {
+                console.error('Eroare la încărcarea documentului:', error);
+                docContent.innerHTML = `<div class="error">Eroare la încărcarea documentului: ${error.message}</div>`;
+            });
+    }
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('Verificare fișiere DOCX disponibile...');
+
+        const docFiles = [
+            'documentatie.docx',
+            'ghid_utilizare.docx',
+            'specificatii_tehnice.docx',
+            'manual_utilizare.docx'
+        ];
+
+        docFiles.forEach(file => {
+            fetch(file, { method: 'HEAD' })
+                .then(response => {
+                    console.log(`Fișier ${file}: ${response.ok ? 'Găsit' : 'Negăsit'} (${response.status})`);
+                })
+                .catch(error => {
+                    console.error(`Eroare la verificarea fișierului ${file}:`, error);
+                });
+        });
+
+
+    });
+
+
+    function renderDocxFromArrayBuffer(arrayBuffer, filename) {
+        mammoth.convertToHtml({ arrayBuffer: arrayBuffer })
+            .then(result => {
+                docContent.innerHTML = result.value;
+
+
+                const docTitle = document.createElement('div');
+                docTitle.className = 'doc-title';
+                docTitle.textContent = filename;
+                docContent.insertBefore(docTitle, docContent.firstChild);
+
+
+                if (result.messages.length > 0) {
+                    console.warn('Mammoth warnings:', result.messages);
+                }
+            })
+            .catch(error => {
+                docContent.innerHTML = `<div class="error">Eroare la procesarea documentului: ${error.message}</div>`;
+            });
+    }
+});
+
+
 function renderWorkflowDiagram() {
-    
+
     d3.select("#workflow-svg").html("");
 
     const width = 1200;
@@ -445,8 +558,8 @@ function renderWorkflowDiagram() {
     const svg = d3.select("#workflow-svg")
         .attr("width", width)
         .attr("height", height);
-        
-    
+
+
     svg.append("defs").append("marker")
         .attr("id", "arrowhead-workflow")
         .attr("viewBox", "0 -5 10 10")
@@ -458,27 +571,27 @@ function renderWorkflowDiagram() {
         .append("path")
         .attr("d", "M0,-5L10,0L0,5")
         .attr("fill", "#666");
-        
-    
+
+
     svg.append("rect")
         .attr("width", width)
         .attr("height", height)
         .attr("fill", "#0f1525");
-        
-    
+
+
     const nodes = [
         { id: "input", label: "Input Date", x: 100, y: 350, type: "input" },
         { id: "preprocess", label: "Preprocesare", x: 250, y: 350, type: "process" },
-        { id: "identify", label: "Identificare Criptosistem", x: 400, y: 150, type: "process" }, 
-        { id: "analyze", label: "Analiză Statistică", x: 400, y: 550, type: "process" }, 
-        { id: "crypto_attack", label: "Atac Criptografic", x: 550, y: 200, type: "process" }, 
-        { id: "ai_analysis", label: "Analiză AI", x: 550, y: 500, type: "process" }, 
+        { id: "identify", label: "Identificare Criptosistem", x: 400, y: 150, type: "process" },
+        { id: "analyze", label: "Analiză Statistică", x: 400, y: 550, type: "process" },
+        { id: "crypto_attack", label: "Atac Criptografic", x: 550, y: 200, type: "process" },
+        { id: "ai_analysis", label: "Analiză AI", x: 550, y: 500, type: "process" },
         { id: "results", label: "Rezultate", x: 700, y: 350, type: "output" },
         { id: "storage", label: "Stocare", x: 850, y: 350, type: "database" },
         { id: "feedback", label: "Feedback", x: 1000, y: 350, type: "process" }
     ];
 
-    
+
     const links = [
         { source: "input", target: "preprocess", label: "Date brute", labelOffsetY: 0 },
         { source: "preprocess", target: "identify", label: "Date procesate", labelOffsetY: -15 },
@@ -501,78 +614,78 @@ function renderWorkflowDiagram() {
         "database": "#f39c12"
     };
 
-    
+
     const linkElements = svg.selectAll(".link")
         .data(links)
         .enter()
         .append("g")
         .attr("class", "link");
-        
-    
+
+
     linkElements.append("path")
         .attr("d", d => {
             const source = nodes.find(n => n.id === d.source);
             const target = nodes.find(n => n.id === d.target);
-            
-            
+
+
             const pathOffsetY = d.pathOffsetY || 0;
-            
-            
+
+
             if (d.source === "feedback" && d.target === "preprocess") {
                 return `M${source.x},${source.y} 
                         C${source.x},${source.y + 100} 
                          ${target.x},${target.y + 100} 
                          ${target.x},${target.y}`;
             }
-            
-            
+
+
             if (Math.abs(source.y - target.y) < 80 && Math.abs(source.x - target.x) > 100) {
-                
-                
+
+
                 const curveFactor = Math.min(Math.abs(target.x - source.x) * 0.15, 50);
                 return `M${source.x},${source.y} 
                         C${source.x + curveFactor},${source.y + pathOffsetY} 
                          ${target.x - curveFactor},${target.y + pathOffsetY} 
                          ${target.x},${target.y}`;
             }
-            
-            
+
+
             if (Math.abs(source.y - target.y) >= 80) {
                 const midX = (source.x + target.x) / 2;
-                
-                
+
+
                 if (d.source === "preprocess" && d.target === "identify") {
                     return `M${source.x},${source.y} 
                             C${source.x + 50},${source.y - 40} 
                              ${target.x - 50},${target.y + 40} 
                              ${target.x},${target.y}`;
                 }
-                
+
                 if (d.source === "preprocess" && d.target === "analyze") {
                     return `M${source.x},${source.y} 
                             C${source.x + 50},${source.y + 40} 
                              ${target.x - 50},${target.y - 40} 
                              ${target.x},${target.y}`;
                 }
-                
-                if ((d.source === "identify" && d.target === "ai_analysis") || 
+
+                if ((d.source === "identify" && d.target === "ai_analysis") ||
                     (d.source === "analyze" && d.target === "crypto_attack")) {
-                    
+
                     return `M${source.x},${source.y} 
                             C${source.x + 70},${source.y} 
                              ${midX},${(source.y + target.y) / 2} 
                              ${target.x - 70},${target.y} 
                              ${target.x},${target.y}`;
                 }
-                
-                
+
+
                 return `M${source.x},${source.y} 
                         C${source.x + 50},${source.y} 
                          ${target.x - 50},${target.y} 
                          ${target.x},${target.y}`;
             }
-            
-            
+
+
             return `M${source.x},${source.y} 
                     C${source.x + 60},${source.y} 
                      ${target.x - 60},${target.y} 
@@ -582,28 +695,28 @@ function renderWorkflowDiagram() {
         .style("stroke", "#666")
         .style("stroke-width", "2px")
         .attr("marker-end", "url(#arrowhead-workflow)");
-    
-    
+
+
     function getLabelPosition(d, index) {
         const source = nodes.find(n => n.id === d.source);
         const target = nodes.find(n => n.id === d.target);
-        
-        
+
+
         let midX = (source.x + target.x) / 2;
         let midY = (source.y + target.y) / 2;
-        
-        
+
+
         midY += d.labelOffsetY || 0;
-        
-        
+
+
         if (d.source === "feedback" && d.target === "preprocess") {
-            midY += 60; 
+            midY += 60;
         }
-        
+
         return { x: midX, y: midY };
     }
-    
-    
+
+
     linkElements.append("rect")
         .attr("x", (d, i) => {
             const pos = getLabelPosition(d, i);
@@ -621,8 +734,8 @@ function renderWorkflowDiagram() {
         .style("stroke", "#666")
         .style("stroke-width", "1px")
         .style("filter", "drop-shadow(0px 0px 3px rgba(255, 255, 255, 0.5))");
-    
-    
+
+
     linkElements.append("text")
         .attr("x", (d, i) => getLabelPosition(d, i).x)
         .attr("y", (d, i) => getLabelPosition(d, i).y)
@@ -632,16 +745,16 @@ function renderWorkflowDiagram() {
         .style("font-size", "14px")
         .style("font-weight", "bold")
         .style("fill", "white");
-        
-    
+
+
     const nodeElements = svg.selectAll(".node")
         .data(nodes)
         .enter()
         .append("g")
         .attr("class", "node")
         .attr("transform", d => `translate(${d.x},${d.y})`);
-        
-    
+
+
     nodeElements.append("rect")
         .attr("width", 160)
         .attr("height", 55)
@@ -653,8 +766,8 @@ function renderWorkflowDiagram() {
         .style("stroke", "rgba(255, 255, 255, 0.3)")
         .style("stroke-width", "3px")
         .style("filter", "drop-shadow(0px 0px 8px rgba(255, 255, 255, 0.5))");
-        
-    
+
+
     nodeElements.append("rect")
         .attr("width", 150)
         .attr("height", 50)
@@ -665,8 +778,8 @@ function renderWorkflowDiagram() {
         .style("fill", d => colorMap[d.type])
         .style("stroke", "#333")
         .style("stroke-width", "2px");
-        
-    
+
+
     nodeElements.append("text")
         .attr("dy", 5)
         .attr("text-anchor", "middle")

@@ -24,6 +24,7 @@
             <div class="tab" data-tab="dataflow">Flux de Date</div>
             <div class="tab" data-tab="technologies">Tehnologii</div>
             <div class="tab" data-tab="workflow">Workflow</div>
+            <div class="tab" data-tab="documents">Documente</div>
         </div>
 
         <div class="tab-content active" id="architecture-tab">
@@ -66,7 +67,7 @@
         <div class="tab-content" id="technologies-tab">
             <h2>Tehnologii Utilizate</h2>
             <div id="technologies-list">
-                
+
                 <div class="tech-card frontend">
                     <h3>React Framework</h3>
                     <p>Biblioteca JavaScript pentru interfețe utilizator interactive, oferind componente refolosibile
@@ -86,7 +87,7 @@
                     <p><strong>Avantaje:</strong> Automatizare, integrare în pipeline-uri, utilizare avansată</p>
                 </div>
 
-                
+
                 <div class="tech-card backend">
                     <h3>Nginx</h3>
                     <p>Server web pentru servirea aplicației și load balancing.</p>
@@ -94,8 +95,10 @@
                 </div>
                 <div class="tech-card backend">
                     <h3>OpenSSL</h3>
-                    <p>Bibliotecă criptografică robustă pentru implementarea protocoalelor TLS/SSL și funcționalități criptografice de bază.</p>
-                    <p><strong>Avantaje:</strong> Suport algoritmi multipli, performanță ridicată, constant actualizată cu standardele moderne</p>
+                    <p>Bibliotecă criptografică robustă pentru implementarea protocoalelor TLS/SSL și funcționalități
+                        criptografice de bază.</p>
+                    <p><strong>Avantaje:</strong> Suport algoritmi multipli, performanță ridicată, constant actualizată
+                        cu standardele moderne</p>
                 </div>
                 <div class="tech-card backend">
                     <h3>Python (FastAPI)</h3>
@@ -114,7 +117,7 @@
                     <p><strong>Avantaje:</strong> Izolare, reproducere, orchestrare</p>
                 </div>
 
-                
+
                 <div class="tech-card tools">
                     <h3>RsaCtfTool</h3>
                     <p>Instrument specializat pentru atacuri asupra RSA, integrat cu API-uri.</p>
@@ -135,14 +138,16 @@
                     <p>Modul de identificare automată a tipurilor de hash.</p>
                     <p><strong>Funcționalități:</strong> Recunoaștere peste 40 tipuri, sugestii cracking</p>
                 </div>
-                
+
                 <div class="tech-card tools">
                     <h3>Blockchain Explorer</h3>
-                    <p>Instrument specializat pentru analiza tranzacțiilor blockchain și verificarea semnăturilor criptografice.</p>
-                    <p><strong>Funcționalități:</strong> Analiza semnăturilor ECDSA, urmărire tranzacții, verificare hash-uri block</p>
+                    <p>Instrument specializat pentru analiza tranzacțiilor blockchain și verificarea semnăturilor
+                        criptografice.</p>
+                    <p><strong>Funcționalități:</strong> Analiza semnăturilor ECDSA, urmărire tranzacții, verificare
+                        hash-uri block</p>
                 </div>
 
-                
+
                 <div class="tech-card ai">
                     <h3>TensorFlow/PyTorch</h3>
                     <p>Framework-uri ML pentru analiza pattern-urilor și inferențe criptografice.</p>
@@ -159,7 +164,7 @@
                     <p><strong>Tehnici:</strong> Învățare nesupervizată, clustering, auto-encodere</p>
                 </div>
 
-                
+
                 <div class="tech-card database">
                     <h3>PostgreSQL</h3>
                     <p>Bază de date relațională pentru stocarea datelor structurate ale platformei.</p>
@@ -181,7 +186,7 @@
                     <p>Bază de date specializată pentru hash-uri pre-calculate pentru reverse hashing.</p>
                     <p><strong>Caracteristici:</strong> Compresie, indexare avansată, partajare</p>
                 </div>
-                
+
             </div>
         </div>
 
@@ -193,6 +198,28 @@
         </div>
 
     </div>
+
+   
+    <div class="tab-content" id="documents-tab">
+        <h2>Documentație Tehnică</h2>
+        
+        <div class="document-viewer-container">
+            <div class="document-list">
+                <h3 style="color: black">Documente Disponibile</h3>
+                <ul id="document-list">
+                    <li class="doc-item" style="color: black" data-docfile="Cryptoanalasys.docx">Documentație Tehnică</li>
+                </ul>
+            </div>
+            
+            <div class="document-content">
+                <div id="doc-viewer">
+                    <div id="doc-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 
     <script src="diagram.js"></script>
 
