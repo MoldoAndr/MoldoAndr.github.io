@@ -505,10 +505,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('Verificare fișiere DOCX disponibile...');
 
         const docFiles = [
-            'documentatie.docx',
-            'ghid_utilizare.docx',
-            'specificatii_tehnice.docx',
-            'manual_utilizare.docx'
+            'Cryptoanalasys.docx'
         ];
 
         docFiles.forEach(file => {
