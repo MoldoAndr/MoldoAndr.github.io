@@ -476,30 +476,189 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-    function loadDocument(filename) {
-        console.log('Încercare de încărcare document:', filename);
+// Add this function to diagram.js
 
+// Function to render PDF from array buffer
+function renderPdfFromArrayBuffer(arrayBuffer, filename) {
+    // Clear current content
+    docContent.innerHTML = '';
 
-        docContent.innerHTML = '<div class="loading">Încărcare document...</div>';
+    // Create a title for the document
+    const docTitle = document.createElement('div');
+    docTitle.className = 'doc-title';
+    docTitle.textContent = filename;
+    docContent.appendChild(docTitle);
 
-        fetch(filename)
-            .then(response => {
-                console.log('Răspuns primit:', response.status, response.statusText);
-                if (!response.ok) {
-                    throw new Error(`Eroare rețea: ${response.status} ${response.statusText}`);
-                }
-                return response.arrayBuffer();
-            })
-            .then(arrayBuffer => {
-                console.log('Buffer document primit, dimensiune:', arrayBuffer.byteLength);
-                renderDocxFromArrayBuffer(arrayBuffer, filename);
-            })
-            .catch(error => {
-                console.error('Eroare la încărcarea documentului:', error);
-                docContent.innerHTML = `<div class="error">Eroare la încărcarea documentului: ${error.message}</div>`;
-            });
+    // Create a container for the PDF viewer
+    const pdfContainer = document.createElement('div');
+    pdfContainer.id = 'pdf-viewer-container';
+    pdfContainer.style.width = '100%';
+    pdfContainer.style.height = '800px'; // Adjust height as needed
+    docContent.appendChild(pdfContainer);
+
+    // Load the PDF.js library from CDN if not already loaded
+    if (typeof pdfjsLib === 'undefined') {
+        // Create script element to load PDF.js
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js';
+        script.integrity = 'sha512-LcTy51Zw0u/js+yQRJ/3vwSUPT+mhJ9j5vnYZ+fTLrKKPL8OC1iTZHVLLszGFQH/fgaes+KIbsVwKYdrAbCFQ==';
+        script.crossOrigin = 'anonymous';
+        script.onload = function() {
+            // Initialize PDF.js and render the PDF
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+            renderPdfWithPdfJs(arrayBuffer, pdfContainer);
+        };
+        document.head.appendChild(script);
+    } else {
+        // PDF.js is already loaded, render the PDF
+        renderPdfWithPdfJs(arrayBuffer, pdfContainer);
     }
+}
 
+// Function to render PDF using PDF.js
+function renderPdfWithPdfJs(arrayBuffer, container) {
+    // Create a new promise to load the PDF document
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    
+    loadingTask.promise.then(function(pdf) {
+        console.log('PDF loaded successfully. Number of pages:', pdf.numPages);
+        
+        // Create a container for all pages
+        const pagesContainer = document.createElement('div');
+        pagesContainer.className = 'pdf-pages';
+        container.appendChild(pagesContainer);
+        
+        // Function to render a page
+        function renderPage(pageNumber) {
+            pdf.getPage(pageNumber).then(function(page) {
+                const viewport = page.getViewport({ scale: 1.5 });
+                
+                // Create a div for this page
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'pdf-page';
+                pageDiv.style.position = 'relative';
+                pageDiv.style.margin = '10px auto';
+                pageDiv.style.border = '1px solid #ddd';
+                pageDiv.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+                pagesContainer.appendChild(pageDiv);
+                
+                // Create a canvas for rendering
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                pageDiv.appendChild(canvas);
+                
+                // Render PDF page into canvas context
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                
+                page.render(renderContext).promise.then(function() {
+                    console.log('Page', pageNumber, 'rendered successfully');
+                    
+                    // Render next page if available
+                    if (pageNumber < pdf.numPages) {
+                        renderPage(pageNumber + 1);
+                    }
+                });
+            }).catch(function(error) {
+                console.error('Error rendering page', pageNumber, ':', error);
+                container.innerHTML += `<div class="error">Error rendering page ${pageNumber}: ${error.message}</div>`;
+            });
+        }
+        
+        // Start rendering from first page
+        renderPage(1);
+    }).catch(function(error) {
+        console.error('Error loading PDF:', error);
+        container.innerHTML = `<div class="error">Error loading PDF: ${error.message}</div>`;
+    });
+}
+
+// Modify the loadDocument function to handle PDF files
+function loadDocument(filename) {
+    console.log('Attempting to load document:', filename);
+    
+    docContent.innerHTML = '<div class="loading">Loading document...</div>';
+    
+    fetch(filename)
+        .then(response => {
+            console.log('Response received:', response.status, response.statusText);
+            if (!response.ok) {
+                throw new Error(`Network error: ${response.status} ${response.statusText}`);
+            }
+            return response.arrayBuffer();
+        })
+        .then(arrayBuffer => {
+            console.log('Document buffer received, size:', arrayBuffer.byteLength);
+            
+            // Determine file type and render accordingly
+            if (filename.toLowerCase().endsWith('.pdf')) {
+                renderPdfFromArrayBuffer(arrayBuffer, filename);
+            } else if (filename.toLowerCase().endsWith('.docx')) {
+                renderDocxFromArrayBuffer(arrayBuffer, filename);
+            } else {
+                docContent.innerHTML = `<div class="error">Unsupported file type: ${filename}</div>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading document:', error);
+            docContent.innerHTML = `<div class="error">Error loading document: ${error.message}</div>`;
+        });
+}
+
+// Add CSS styles for PDF viewer
+document.addEventListener('DOMContentLoaded', function() {
+    // Add styles for PDF viewer
+    const style = document.createElement('style');
+    style.textContent = `
+        .pdf-pages {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .pdf-page {
+            max-width: 100%;
+            margin-bottom: 20px;
+        }
+        .pdf-page canvas {
+            max-width: 100%;
+            height: auto;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Update document list to include PDF files
+    const docItems = document.querySelectorAll('.doc-item');
+    
+    // Find any existing PDF elements, or create a new one for Licenta.pdf
+    let pdfItemExists = false;
+    docItems.forEach(item => {
+        if (item.getAttribute('data-docfile') === 'Licenta.pdf') {
+            pdfItemExists = true;
+        }
+    });
+    
+    if (!pdfItemExists && document.getElementById('document-list')) {
+        const pdfItem = document.createElement('li');
+        pdfItem.className = 'doc-item';
+        pdfItem.style.color = 'black';
+        pdfItem.setAttribute('data-docfile', 'Licenta.pdf');
+        pdfItem.textContent = 'Licenta PDF';
+        document.getElementById('document-list').appendChild(pdfItem);
+        
+        // Add event listener for the new item
+        pdfItem.addEventListener('click', function() {
+            const docFile = this.getAttribute('data-docfile');
+            loadDocument(docFile);
+            
+            docItems.forEach(d => d.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    }
+});
 
     document.addEventListener('DOMContentLoaded', function () {
         console.log('Verificare fișiere DOCX disponibile...');

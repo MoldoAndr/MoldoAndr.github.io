@@ -8,6 +8,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     <link rel="stylesheet" href="diagram.css">
     <link rel="icon" type="image/gif" href="favicon.gif">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js" 
+            crossorigin="anonymous"></script>
+    <script>
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        }
+    </script>
+
 </head>
 
 <body>
@@ -203,11 +212,11 @@
     <div class="tab-content" id="documents-tab">
         <h2>Documentație Tehnică</h2>
         
-        <div class="document-viewer-container">
+        <div class="document-viewer-container" style="height: 800px;">
             <div class="document-list">
                 <h3 style="color: black">Documente Disponibile</h3>
                 <ul id="document-list">
-                    <li class="doc-item" style="color: black" data-docfile="Cryptoanalasys.docx">Documentație Tehnică</li>
+                    <li class="doc-item" style="color: black" data-docfile="Licenta.pdf">Licenta PDF</li>
                 </ul>
             </div>
             
@@ -220,7 +229,6 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-
     <script src="diagram.js"></script>
 
 </body>
