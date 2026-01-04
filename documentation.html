@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - Vitruvian Cipher</title>
+    <meta name="description" content="Software Requirements Specification (SRS) for Vitruvian Cipher">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        html, body {
+            background: #000000;
+            height: 100%;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Canvas Background */
+        #fluid-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #00ff88;
+            text-decoration: none;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 0.05em;
+            transition: color 0.3s ease;
+        }
+
+        .nav-logo:hover {
+            color: #00dd77;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+            padding: 0.5rem 0;
+        }
+
+        .nav-link:hover {
+            color: #00ff88;
+        }
+
+        /* Main Content */
+        .doc-main {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1;
+            padding-top: 60px;
+            opacity: 0.89;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Document Header */
+        .doc-header {
+            flex-shrink: 0;
+            text-align: center;
+            padding: 1.5rem 2rem;
+            background: linear-gradient(180deg, rgba(0, 255, 136, 0.05) 0%, transparent 100%);
+        }
+
+        .doc-header h1 {
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .doc-subtitle {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* PDF Viewer Container */
+        .pdf-viewer-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 2rem 1rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* PDF Toolbar */
+        .pdf-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-bottom: none;
+            border-radius: 12px 12px 0 0;
+            padding: 1rem 1.5rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .pdf-toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .pdf-toolbar-center {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .pdf-toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .pdf-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 6px;
+            color: #00ff88;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .pdf-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: rgba(0, 255, 136, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .pdf-btn:active {
+            transform: translateY(0);
+        }
+
+        .pdf-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .page-info {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .page-input {
+            width: 50px;
+            padding: 0.25rem 0.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 4px;
+            color: #ffffff;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        .page-input:focus {
+            outline: none;
+            border-color: #00ff88;
+        }
+
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .zoom-btn {
+            padding: 0.4rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 4px;
+            color: #00ff88;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zoom-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+        }
+
+        .zoom-level {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.875rem;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        /* PDF Canvas Container */
+        .pdf-canvas-wrapper {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 0 0 12px 12px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            display: flex;
+            align-items: center;
+            padding: 2rem;
+            min-height: 0;
+        }
+
+        .pdf-pages-container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 2rem;
+            padding: 0 1rem;
+        }
+
+        /* PDF Page Wrapper - contains canvas and text layer */
+        .pdf-page-wrapper {
+            position: relative;
+            background: #ffffff;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 255, 136, 0.1);
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .pdf-page {
+            display: block;
+        }
+
+        /* Text Layer Styles */
+        .textLayer {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            opacity: 0.2;
+            line-height: 1.0;
+            -webkit-text-size-adjust: none;
+            -moz-text-size-adjust: none;
+            text-size-adjust: none;
+        }
+
+        .textLayer > span {
+            color: transparent;
+            position: absolute;
+            white-space: pre;
+            cursor: text;
+            transform-origin: 0% 0%;
+        }
+
+        .textLayer ::selection {
+            background: rgba(0, 255, 136, 0.3);
+        }
+
+        .textLayer ::-moz-selection {
+            background: rgba(0, 255, 136, 0.3);
+        }
+
+        /* Loading State */
+        .pdf-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            padding: 4rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .pdf-loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(0, 255, 136, 0.2);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error State */
+        .pdf-error {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            padding: 4rem;
+            text-align: center;
+        }
+
+        .pdf-error svg {
+            color: #ff6b6b;
+        }
+
+        .pdf-error h3 {
+            color: #ffffff;
+            font-size: 1.25rem;
+        }
+
+        .pdf-error p {
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 400px;
+        }
+
+        /* Footer */
+        .doc-footer {
+            position: relative;
+            z-index: 1;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .doc-footer p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 1rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .pdf-toolbar {
+                flex-direction: column;
+                padding: 1rem;
+            }
+
+            .pdf-toolbar-left,
+            .pdf-toolbar-center,
+            .pdf-toolbar-right {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .pdf-canvas-wrapper {
+                padding: 1rem;
+                min-height: 60vh;
+            }
+
+            .doc-header {
+                padding: 1.5rem 1rem;
+            }
+
+            .pdf-viewer-container {
+                padding: 0 1rem 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-logo span {
+                display: none;
+            }
+
+            .pdf-btn span {
+                display: none;
+            }
+
+            .pdf-btn {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="fluid-canvas"></canvas>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>vitruvian-cipher</span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="demo.html" class="nav-link">Demo</a>
+                <a href="https://github.com/MoldoAndr/vitruvian-cipher" target="_blank" rel="noopener noreferrer" class="nav-link">GitHub</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="doc-main">
+
+        <div class="pdf-viewer-container">
+            <div class="pdf-toolbar">
+                <div class="pdf-toolbar-left">
+                    <div class="page-info">
+                        <span>Page</span>
+                        <input type="number" class="page-input" id="pageInput" value="1" min="1">
+                        <span>of <span id="totalPages">-</span></span>
+                    </div>
+                </div>
+                <div class="pdf-toolbar-right">
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" id="zoomOut" title="Zoom Out">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </button>
+                        <span class="zoom-level" id="zoomLevel">50%</span>
+                        <button class="zoom-btn" id="zoomIn" title="Zoom In">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <a href="assets/SRS.pdf" download class="pdf-btn" title="Download PDF">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Download</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="pdf-canvas-wrapper" id="pdfViewer">
+                <div class="pdf-loading" id="pdfLoading">
+                    <div class="pdf-loading-spinner"></div>
+                    <p>Loading document...</p>
+                </div>
+                <div class="pdf-error" id="pdfError">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <h3>Unable to load PDF</h3>
+                    <p>The document could not be loaded. Please try downloading it directly.</p>
+                    <a href="assets/SRS.pdf" download class="pdf-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Download PDF</span>
+                    </a>
+                </div>
+                <div class="pdf-pages-container" id="pdfPages"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="doc-footer">
+        <p>&copy; 2024 Vitruvian Cipher. Software Requirements Specification v1.0</p>
+    </footer>
+
+    <!-- PDF.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Initialize PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // PDF Viewer State
+        const state = {
+            pdfDoc: null,
+            currentPage: 1,
+            totalPages: 0,
+            scale: 0.4,
+            rendering: false,
+            pendingPage: null
+        };
+
+        // DOM Elements
+        const pdfViewer = document.getElementById('pdfViewer');
+        const pdfPages = document.getElementById('pdfPages');
+        const pdfLoading = document.getElementById('pdfLoading');
+        const pdfError = document.getElementById('pdfError');
+        const pageInput = document.getElementById('pageInput');
+        const totalPagesSpan = document.getElementById('totalPages');
+        const zoomLevel = document.getElementById('zoomLevel');
+        const zoomInBtn = document.getElementById('zoomIn');
+        const zoomOutBtn = document.getElementById('zoomOut');
+
+        // Load PDF
+        async function loadPDF() {
+            try {
+                const loadingTask = pdfjsLib.getDocument('assets/SRS.pdf');
+                state.pdfDoc = await loadingTask.promise;
+                state.totalPages = state.pdfDoc.numPages;
+                totalPagesSpan.textContent = state.totalPages;
+                pageInput.max = state.totalPages;
+
+                pdfLoading.style.display = 'none';
+                
+                // Render all pages
+                await renderAllPages();
+            } catch (error) {
+                console.error('Error loading PDF:', error);
+                pdfLoading.style.display = 'none';
+                pdfError.style.display = 'flex';
+            }
+        }
+
+        // Render all pages with text layer for selection
+        async function renderAllPages() {
+            pdfPages.innerHTML = '';
+            
+            for (let i = 1; i <= state.totalPages; i++) {
+                const page = await state.pdfDoc.getPage(i);
+                const scale = state.scale * 2; // Higher scale for crisp rendering
+                const viewport = page.getViewport({ scale: scale });
+                
+                // Create page wrapper
+                const pageWrapper = document.createElement('div');
+                pageWrapper.className = 'pdf-page-wrapper';
+                pageWrapper.id = `page-${i}`;
+                pageWrapper.style.width = viewport.width + 'px';
+                pageWrapper.style.height = viewport.height + 'px';
+                
+                // Create canvas
+                const canvas = document.createElement('canvas');
+                canvas.className = 'pdf-page';
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                
+                const context = canvas.getContext('2d');
+                
+                // Render PDF page to canvas
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                
+                await page.render(renderContext).promise;
+                pageWrapper.appendChild(canvas);
+                
+                // Create text layer for selection
+                const textLayerDiv = document.createElement('div');
+                textLayerDiv.className = 'textLayer';
+                textLayerDiv.style.width = viewport.width + 'px';
+                textLayerDiv.style.height = viewport.height + 'px';
+                
+                // Get text content and render text layer
+                const textContent = await page.getTextContent();
+                
+                // Render text layer
+                pdfjsLib.renderTextLayer({
+                    textContentSource: textContent,
+                    container: textLayerDiv,
+                    viewport: viewport,
+                    textDivs: []
+                });
+                
+                pageWrapper.appendChild(textLayerDiv);
+                pdfPages.appendChild(pageWrapper);
+            }
+        }
+
+        // Go to specific page (horizontal scroll)
+        function goToPage(pageNum) {
+            if (pageNum < 1 || pageNum > state.totalPages) return;
+            
+            state.currentPage = pageNum;
+            pageInput.value = pageNum;
+            
+            const pageElement = document.getElementById(`page-${pageNum}`);
+            if (pageElement) {
+                pageElement.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+        }
+
+        // Zoom
+        async function setZoom(newScale) {
+            if (newScale < 0.25 || newScale > 3) return;
+            
+            state.scale = newScale;
+            zoomLevel.textContent = Math.round(newScale * 100) + '%';
+            
+            await renderAllPages();
+        }
+
+        // Event Listeners
+        zoomInBtn.addEventListener('click', () => setZoom(state.scale + 0.25));
+        zoomOutBtn.addEventListener('click', () => setZoom(state.scale - 0.25));
+        
+        pageInput.addEventListener('change', (e) => {
+            const page = parseInt(e.target.value, 10);
+            if (!isNaN(page)) {
+                goToPage(page);
+            }
+        });
+
+        pageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const page = parseInt(e.target.value, 10);
+                if (!isNaN(page)) {
+                    goToPage(page);
+                }
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            
+            switch (e.key) {
+                case 'ArrowLeft':
+                case 'PageUp':
+                    goToPage(state.currentPage - 1);
+                    break;
+                case 'ArrowRight':
+                case 'PageDown':
+                    goToPage(state.currentPage + 1);
+                    break;
+                case '+':
+                case '=':
+                    setZoom(state.scale + 0.25);
+                    break;
+                case '-':
+                    setZoom(state.scale - 0.25);
+                    break;
+            }
+        });
+
+        // Scroll tracking to update current page (horizontal)
+        pdfViewer.addEventListener('scroll', () => {
+            const pages = pdfPages.querySelectorAll('.pdf-page-wrapper');
+            const viewerRect = pdfViewer.getBoundingClientRect();
+            const viewerMiddle = viewerRect.left + viewerRect.width / 2;
+            
+            for (let i = 0; i < pages.length; i++) {
+                const pageRect = pages[i].getBoundingClientRect();
+                if (pageRect.left <= viewerMiddle && pageRect.right >= viewerMiddle) {
+                    if (state.currentPage !== i + 1) {
+                        state.currentPage = i + 1;
+                        pageInput.value = state.currentPage;
+                    }
+                    break;
+                }
+            }
+        });
+
+        // Initialize
+        loadPDF();
+    </script>
+
+    <script src="js/webgl-fluid.js"></script>
+</body>
+</html>
