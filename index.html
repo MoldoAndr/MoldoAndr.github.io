@@ -3,13 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vitruvian Cipher - Cryptographic Intelligence Platform</title>
+    <title>vitruvian cipher</title>
     <meta name="description" content="Next-Generation Cryptographic Intelligence Platform powered by AI">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <canvas id="fluid-canvas"></canvas>
+
+    <!-- Audio Player -->
+    <audio id="background-music" loop>
+        <source src="assets/illusion.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Music Control UI -->
+    <div class="music-control">
+        <select id="track-selector" class="track-selector">
+            <option value="assets/illusion.mp3" data-title="Illusion">Illusion</option>
+            <option value="assets/cauta.mp3" data-title="Cauta">Cauta</option>
+            <option value="assets/persoana.mp3" data-title="Persoana">Persoana</option>
+        </select>
+        <button id="music-toggle" class="music-btn">Play</button>
+    </div>
 
     <div class="main-container" style="align-items: center; text-align: center;">
         <header class="header">
@@ -64,10 +79,165 @@
                     <span>GitHub</span>
                 </a>
             </div>
-            <p class="footer-text">Built with cutting-edge AI & cryptography</p>
         </footer>
     </div>
 
     <script src="js/webgl-fluid.js"></script>
+    <script>
+        // Advanced Audio Visualizer with Frequency Spectrum Mapping
+        // Low frequencies (bass) on LEFT, High frequencies (treble) on RIGHT
+        (function() {
+            const audio = document.getElementById('background-music');
+            const toggleBtn = document.getElementById('music-toggle');
+            
+            // Set volume to 44% (locked)
+            audio.volume = 0.44;
+            
+            let audioContext = null;
+            let analyser = null;
+            let dataArray = null;
+            let isPlaying = false;
+            
+            // Audio analysis config based on 44.1kHz sample rate
+            const FFT_SIZE = 2048; // Gives us 1024 frequency bins
+            const SAMPLE_RATE = 44100;
+            const BIN_RESOLUTION = SAMPLE_RATE / FFT_SIZE; // ~21.5 Hz per bin
+            
+            // Frequency band definitions (in Hz)
+            const FREQ_BANDS = {
+                subBass: { min: 20, max: 60 },      // Sub-bass
+                bass: { min: 60, max: 250 },        // Bass
+                lowMid: { min: 250, max: 500 },     // Low midrange
+                mid: { min: 500, max: 2000 },       // Midrange
+                highMid: { min: 2000, max: 4000 },  // Upper midrange
+                presence: { min: 4000, max: 6000 }, // Presence
+                brilliance: { min: 6000, max: 20000 } // Brilliance/treble
+            };
+            
+            // Convert frequency to FFT bin index
+            function freqToBin(freq) {
+                return Math.round(freq / BIN_RESOLUTION);
+            }
+            
+            // Get average amplitude for a frequency range
+            function getFreqRangeAmplitude(minFreq, maxFreq) {
+                const minBin = Math.max(0, freqToBin(minFreq));
+                const maxBin = Math.min(dataArray.length - 1, freqToBin(maxFreq));
+                let sum = 0;
+                let count = 0;
+                for (let i = minBin; i <= maxBin; i++) {
+                    sum += dataArray[i];
+                    count++;
+                }
+                return count > 0 ? sum / count : 0;
+            }
+            
+            // Smooth values for less jittery visualization
+            const smoothedBands = {};
+            const smoothingFactor = 0.3; // Lower = smoother, higher = more responsive
+            
+            function initAudio() {
+                if (audioContext) return;
+                
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = FFT_SIZE;
+                analyser.smoothingTimeConstant = 0.8; // Built-in smoothing
+                
+                const source = audioContext.createMediaElementSource(audio);
+                source.connect(analyser);
+                analyser.connect(audioContext.destination);
+                
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                
+                // Initialize smoothed values
+                Object.keys(FREQ_BANDS).forEach(band => {
+                    smoothedBands[band] = 0;
+                });
+                
+                console.log(`Audio Analyser initialized:
+                    FFT Size: ${FFT_SIZE}
+                    Frequency Bins: ${analyser.frequencyBinCount}
+                    Bin Resolution: ${BIN_RESOLUTION.toFixed(2)} Hz
+                    Frequency Range: 0 - ${SAMPLE_RATE/2} Hz`);
+                
+                // Start visualization loop
+                visualize();
+            }
+            
+            function visualize() {
+                if (!analyser) {
+                    requestAnimationFrame(visualize);
+                    return;
+                }
+                
+                analyser.getByteFrequencyData(dataArray);
+                
+                if (isPlaying) {
+                    // Calculate amplitude for each frequency band
+                    const bands = {};
+                    Object.entries(FREQ_BANDS).forEach(([name, range]) => {
+                        const raw = getFreqRangeAmplitude(range.min, range.max);
+                        // Apply smoothing
+                        smoothedBands[name] = smoothedBands[name] * (1 - smoothingFactor) + raw * smoothingFactor;
+                        bands[name] = smoothedBands[name];
+                    });
+                    
+                    // Trigger frequency-mapped splats
+                    if (window.frequencySpectrumSplat) {
+                        window.frequencySpectrumSplat(bands, dataArray);
+                    }
+                }
+                
+                requestAnimationFrame(visualize);
+            }
+            
+            toggleBtn.addEventListener('click', function() {
+                if (!isPlaying) {
+                    initAudio();
+                    if (audioContext.state === 'suspended') {
+                        audioContext.resume();
+                    }
+                    audio.play();
+                    isPlaying = true;
+                    toggleBtn.textContent = 'Stop';
+                    toggleBtn.classList.add('playing');
+                } else {
+                    audio.pause();
+                    audio.currentTime = 0;
+                    isPlaying = false;
+                    toggleBtn.textContent = 'Play';
+                    toggleBtn.classList.remove('playing');
+                }
+            });
+            
+            // Track selector - switch between songs
+            const trackSelector = document.getElementById('track-selector');
+            trackSelector.addEventListener('change', function() {
+                const wasPlaying = isPlaying;
+                
+                // Stop current playback
+                if (isPlaying) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                    isPlaying = false;
+                    toggleBtn.textContent = 'Play';
+                    toggleBtn.classList.remove('playing');
+                }
+                
+                // Change source
+                audio.src = this.value;
+                audio.load();
+                
+                // Resume if was playing
+                if (wasPlaying) {
+                    audio.play();
+                    isPlaying = true;
+                    toggleBtn.textContent = 'Stop';
+                    toggleBtn.classList.add('playing');
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

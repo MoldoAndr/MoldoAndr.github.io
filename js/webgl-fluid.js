@@ -1931,4 +1931,200 @@ function runSimulation(config) {
     }
     return hash;
   }
+
+  // ============================================
+  // 3-PANEL FREQUENCY SPECTRUM VISUALIZER
+  // LEFT PANEL: Low frequencies (bass)
+  // MIDDLE PANEL: Mid frequencies
+  // RIGHT PANEL: High frequencies (treble)
+  // Random positioning within each panel
+  // ============================================
+  
+  const baseRadius = config.SPLAT_RADIUS;
+  const baseForce = config.SPLAT_FORCE;
+  
+  // Track previous band values for beat detection
+  const prevBands = {
+    subBass: 0, bass: 0, lowMid: 0, mid: 0, highMid: 0, presence: 0, brilliance: 0
+  };
+  
+  // Cooldowns per band to prevent over-triggering
+  const bandCooldowns = {
+    subBass: 0, bass: 0, lowMid: 0, mid: 0, highMid: 0, presence: 0, brilliance: 0
+  };
+  
+  // Define 3 panels with boundaries
+  const PANELS = {
+    left: { xMin: 0.0, xMax: 0.33 },   // Low frequencies
+    middle: { xMin: 0.33, xMax: 0.66 }, // Mid frequencies  
+    right: { xMin: 0.66, xMax: 1.0 }    // High frequencies
+  };
+  
+  // Map frequency bands to their panels
+  const bandPanels = {
+    subBass: 'left',    // Low
+    bass: 'left',       // Low
+    lowMid: 'middle',   // Mid
+    mid: 'middle',      // Mid
+    highMid: 'middle',  // Mid
+    presence: 'right',  // High
+    brilliance: 'right' // High
+  };
+  
+  // Color hues for each band (HSL hue values 0-1) - All green theme
+  const bandHues = {
+    subBass: 0.38,    // Deep green
+    bass: 0.36,       // Forest green
+    lowMid: 0.35,     // Green
+    mid: 0.33,        // Bright green
+    highMid: 0.32,    // Lime green
+    presence: 0.30,   // Yellow-green
+    brilliance: 0.28  // Light green
+  };
+  
+  // Thresholds for each band (adjusted for typical music spectrum)
+  const bandThresholds = {
+    subBass: 140,
+    bass: 130,
+    lowMid: 100,
+    mid: 90,
+    highMid: 80,
+    presence: 70,
+    brilliance: 60
+  };
+  
+  // Cooldown times per band (ms) - increased for extreme dissipation
+  const bandCooldownTimes = {
+    subBass: 200,
+    bass: 180,
+    lowMid: 150,
+    mid: 120,
+    highMid: 100,
+    presence: 80,
+    brilliance: 60
+  };
+  
+  // Get random position within a panel
+  function getRandomPanelPosition(panelName) {
+    const panel = PANELS[panelName];
+    const x = panel.xMin + Math.random() * (panel.xMax - panel.xMin);
+    const y = 0.1 + Math.random() * 0.8; // Full vertical range with margin
+    return { x, y };
+  }
+  
+  window.frequencySpectrumSplat = function(bands, rawData) {
+    const now = Date.now();
+    
+    // Process each frequency band
+    Object.entries(bands).forEach(([bandName, amplitude]) => {
+      const threshold = bandThresholds[bandName];
+      const cooldownTime = bandCooldownTimes[bandName];
+      const panelName = bandPanels[bandName];
+      const hue = bandHues[bandName];
+      
+      // Check for beat (amplitude spike above threshold)
+      const isBeat = amplitude > threshold && 
+                     amplitude > prevBands[bandName] * 1.15 && 
+                     now > bandCooldowns[bandName];
+      
+      if (isBeat) {
+        bandCooldowns[bandName] = now + cooldownTime;
+        
+        // Calculate intensity based on how much above threshold
+        const intensity = (amplitude - threshold) / (255 - threshold);
+        
+        // Create splat at RANDOM position within the designated panel
+        const color = HSVtoRGB(hue, 0.8, 0.9 + intensity * 0.1);
+        color.r *= 8.0 + intensity * 4;
+        color.g *= 8.0 + intensity * 4;
+        color.b *= 8.0 + intensity * 4;
+        
+        // Random position within panel
+        const pos = getRandomPanelPosition(panelName);
+        
+        // Force direction: completely random for maximum dissipation
+        const force = 500 + intensity * 600;
+        const angle = Math.random() * Math.PI * 2; // Full 360° random direction
+        const dx = Math.cos(angle) * force;
+        const dy = Math.sin(angle) * force;
+        
+        splat(pos.x, pos.y, dx, dy, color);
+      }
+      
+      // Store current value for next comparison
+      prevBands[bandName] = amplitude;
+    });
+    
+    // Continuous subtle visualization - also respects 3 panels
+    const binCount = rawData.length;
+    const numSamples = 24; // Reduced for less repetition
+    
+    for (let i = 0; i < numSamples; i++) {
+      const binIndex = Math.floor((i / numSamples) * binCount * 0.5);
+      const amplitude = rawData[binIndex];
+      
+      // Lower probability for extreme dissipation
+      if (amplitude > 110 && Math.random() < 0.015) {
+        // Determine which panel based on frequency position
+        let panelName;
+        const freqRatio = i / numSamples;
+        if (freqRatio < 0.33) {
+          panelName = 'left';
+        } else if (freqRatio < 0.66) {
+          panelName = 'middle';
+        } else {
+          panelName = 'right';
+        }
+        
+        // Random position within panel
+        const pos = getRandomPanelPosition(panelName);
+        
+        // Green hue with slight variation (0.28 to 0.38)
+        const hue = 0.28 + freqRatio * 0.1;
+        const color = HSVtoRGB(hue, 0.7, 0.8);
+        const normalizedAmp = amplitude / 255;
+        color.r *= 3 * normalizedAmp;
+        color.g *= 3 * normalizedAmp;
+        color.b *= 3 * normalizedAmp;
+        
+        // Random direction for maximum dissipation
+        const force = 150 + Math.random() * 150;
+        const angle = Math.random() * Math.PI * 2;
+        const dx = Math.cos(angle) * force;
+        const dy = Math.sin(angle) * force;
+        
+        splat(pos.x, pos.y, dx, dy, color);
+      }
+    }
+    
+    // Dynamically adjust visual parameters based on overall energy
+    const totalEnergy = Object.values(bands).reduce((a, b) => a + b, 0) / Object.keys(bands).length;
+    const energyNorm = totalEnergy / 255;
+    
+    // Pulse the splat radius
+    config.SPLAT_RADIUS = baseRadius * (0.8 + energyNorm * 0.6);
+    
+    // Adjust sunrays intensity
+    if (config.SUNRAYS) {
+      config.SUNRAYS_WEIGHT = 0.8 + energyNorm * 0.8;
+    }
+  };
+  
+  // Legacy functions for backwards compatibility
+  window.audioReactiveSplat = function(intensity, bass, mid) {
+    window.frequencySpectrumSplat({
+      subBass: bass,
+      bass: bass,
+      lowMid: mid,
+      mid: mid,
+      highMid: mid * 0.8,
+      presence: mid * 0.6,
+      brilliance: mid * 0.4
+    }, new Uint8Array(128));
+  };
+  
+  window.updateAudioConfig = function(bass, mid) {
+    const bassNorm = bass / 255;
+    config.SPLAT_RADIUS = baseRadius * (1 + bassNorm * 0.5);
+  };
 }
